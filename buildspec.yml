@@ -14,7 +14,7 @@ phases:
       - docker --version
       - echo Build started on `date`
       - echo Building the Docker image...          
-      - docker build -t http:latest .
+      - docker build -t dev:latest .
       - docker tag dev:latest 120569649088.dkr.ecr.ap-south-1.amazonaws.com/dev:latest
   post_build:
     commands:
