@@ -1,0 +1,28 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - REPOSITORY_URI=987240292938.dkr.ecr.ap-south-1.amazonaws.com/http
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+
+  build:
+    commands:
+      - ls -lrt
+      - docker --version
+      - echo Build started on `date`
+      - echo Building the Docker image...          
+      - docker build -t http:latest .
+      - docker tag http:latest 987240292938.dkr.ecr.ap-south-1.amazonaws.com/http:latest
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push 987240292938.dkr.ecr.ap-south-1.amazonaws.com/http:latest
+      - printf '[{"name":"fargatecontainer","imageUri":"%s"}]' $REPOSITORY_URI:latest > imagedefinations.json
+      - cat imagedefinations.json
+artifacts:
+  files: imagedefinations.json
+
