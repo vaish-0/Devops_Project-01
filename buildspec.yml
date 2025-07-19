@@ -4,24 +4,20 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 120569649088.dkr.ecr.ap-south-1.amazonaws.com
-      - REPOSITORY_URI=120569649088.dkr.ecr.ap-south-1.amazonaws.com/dev
-      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
-
+      - aws ecr get-login-password | docker login --username AWS --password-stdin 854383975731.dkr.ecr.ap-south-1.amazonaws.com
+      - REPO_URI=854383975731.dkr.ecr.ap-south-1.amazonaws.com/test-01
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
   build:
     commands:
-      - ls -lrt
-      - docker --version
       - echo Build started on `date`
-      - echo Building the Docker image...          
-      - docker build -t dev:latest .
-      - docker tag dev:latest 120569649088.dkr.ecr.ap-south-1.amazonaws.com/dev:latest
+      - echo Building the Docker image...
+      - docker build -t $REPO_URI:$IMAGE_TAG .
   post_build:
     commands:
-      - echo Build completed on `date`
       - echo Pushing the Docker image...
-      - docker push 120569649088.dkr.ecr.ap-south-1.amazonaws.com/dev
-      - printf '[{"name":"Dev","imageUri":"%s"}]' $REPOSITORY_URI:latest > imagedefinations.json
-      - cat imagedefinations.json
+      - docker push $REPO_URI:$IMAGE_TAG
+      - echo Writing image definitions...
+      - printf '[{"name":"Test-cluster","imageUri":"%s"}]' $REPO_URI:$IMAGE_TAG > imagedefinitions.json
+
 artifacts:
-  files: imagedefinations.json
+  files: imagedefinitions.json
